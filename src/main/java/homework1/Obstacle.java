@@ -1,3 +1,5 @@
+package homework1;
+
 public class Obstacle {
     private Action action;
     private int energyCount;

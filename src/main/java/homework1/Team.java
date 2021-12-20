@@ -1,3 +1,5 @@
+package homework1;
+
 public class Team {
     private String teamName;
     private Person[] members;

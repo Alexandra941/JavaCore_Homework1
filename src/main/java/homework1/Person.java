@@ -1,3 +1,5 @@
+package homework1;
+
 public class Person implements IAction {
     private String name;
     private int age;
