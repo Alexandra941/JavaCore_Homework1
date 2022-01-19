@@ -1,5 +1,7 @@
 package homework6;
 
+import com.google.gson.Gson;
+import homework7.models.ForecastResponseModel;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -20,7 +22,7 @@ public class Main {
                     .addPathSegment("forecasts")
                     .addPathSegment("v1")
                     .addPathSegment("daily")
-                    .addPathSegment("5day")
+                    .addPathSegment("1day")
                     .addPathSegment(cityCode)
                     .addQueryParameter("apikey", apiKey)
                     .addQueryParameter("language", language)
@@ -32,6 +34,8 @@ public class Main {
 
             Response response = client.newCall(request).execute();
 
+            String responseStr = response.body().string();
+            ForecastResponseModel kek = new Gson().fromJson(responseStr, ForecastResponseModel.class);
             System.out.println(response.body().string());
         } catch (Exception ex){
             ex.printStackTrace();
