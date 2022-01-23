@@ -11,6 +11,8 @@ public class Controller {
     public Controller() {
         variants.put(1, Period.NOW);
         variants.put(5, Period.FIVE_DAYS);
+        variants.put(7, Period.DB);
+        variants.put(8, Period.DB_ALL_BY_CITY);
         //variants.put(2, Period.DB);
     }
 
@@ -23,8 +25,13 @@ public class Controller {
                 break;
             case FIVE_DAYS:
                 weatherModel.getWeather(selectedCity, Period.FIVE_DAYS);
-            //case DB:
-                //weatherModel.getSavedToDBWeather();
+                break;
+            case DB:
+                weatherModel.getSavedToDBWeather();
+                break;
+            case DB_ALL_BY_CITY:
+                weatherModel.getSavedToDBWeather(selectedCity);
+                break;
         }
     }
 }

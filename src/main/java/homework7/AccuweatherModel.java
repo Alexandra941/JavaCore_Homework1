@@ -6,12 +6,15 @@ import homework7.entity.Weather;
 import homework7.models.CityResponseModel;
 import homework7.models.DailyForecasts;
 import homework7.models.ForecastResponseModel;
+import homework8.IWeatherRepository;
+import homework8.WeatherRepositoryImpl;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +28,7 @@ public class AccuweatherModel implements WeatherModel {
     private static final String DAILY = "daily";
     private static final String ONE_DAY = "1day";
     private static final String FIVE_DAY = "5day";
-    private static final String API_KEY = "pXJd8MokcZCdrd2MsoGl2DBZAyCa0zvv";
+    private static final String API_KEY = "ckTA0UrX8K43zrl560geTMTglAcB0ChG";
     private static final String API_KEY_QUERY_PARAM = "apikey";
     private static final String LOCATIONS = "locations";
     private static final String LANGUAGE = "language";
@@ -37,6 +40,8 @@ public class AccuweatherModel implements WeatherModel {
     private static final SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
 
     private static final OkHttpClient okHttpClient = new OkHttpClient();
+
+    private IWeatherRepository weatherRepository = new WeatherRepositoryImpl();
 
     public void getWeather(String selectedCity, Period period) throws IOException {
         StringBuilder sb;
@@ -50,11 +55,21 @@ public class AccuweatherModel implements WeatherModel {
                         .append(String.format("Температура от %s C", forecast.getDailyForecasts().get(0).getTemperature().getMinimum().getValue()))
                         .append(String.format(", до %s C \n",forecast.getDailyForecasts().get(0).getTemperature().getMaximum().getValue()));
 
+                try {
+                    weatherRepository.saveWeather(new Weather(selectedCity,
+                            formatter.format(forecast.getDailyForecasts().get(0).getDate()),
+                            forecast.getHeadline().getText(),
+                            forecast.getDailyForecasts().get(0).getTemperature().getMinimum().getValue()));
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
                 System.out.println(sb);
                 break;
             case FIVE_DAYS:
                 forecast = getForrecast(selectedCity, FIVE_DAY);
 
+                List<Weather> weatherList = new ArrayList<>();
                 sb = new StringBuilder();
                 for (DailyForecasts dailyForecast : forecast.getDailyForecasts()) {
                     sb.append(String.format("В городе %s ", selectedCity))
@@ -62,10 +77,59 @@ public class AccuweatherModel implements WeatherModel {
                         .append(String.format("ожидается %s,", dailyForecast.getDay().getIconPhrase().toLowerCase()))
                         .append(String.format(" температура от %s C", dailyForecast.getTemperature().getMinimum().getValue()))
                         .append(String.format(", до %s C \n", dailyForecast.getTemperature().getMaximum().getValue()));
+
+                    weatherList.add(new Weather(selectedCity,
+                            formatter.format(forecast.getDailyForecasts().get(0).getDate()),
+                            dailyForecast.getDay().getIconPhrase().toLowerCase(),
+                            dailyForecast.getTemperature().getMinimum().getValue()));
+                }
+
+                try {
+                    weatherRepository.saveWeathers(weatherList);
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
 
                 System.out.println(sb);
                 break;
+        }
+    }
+
+    public void getSavedToDBWeather() {
+        List<Weather> weatherList = null;
+        try {
+            weatherList = weatherRepository.getAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        if (weatherList != null && !weatherList.isEmpty()) {
+            for (Weather weather : weatherList) {
+                System.out.println(weather.info());
+            }
+        }
+        else {
+            System.out.println("В базе данных отсутсует информация о погоде.");
+        }
+    }
+
+    public void getSavedToDBWeather(String selectedCity) {
+        List<Weather> weatherList = null;
+        try {
+            weatherList = weatherRepository.getAllByCity(selectedCity);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        if (weatherList != null && !weatherList.isEmpty()) {
+            for (Weather weather : weatherList) {
+                System.out.println(weather.info());
+            }
+        }
+        else {
+            System.out.println("В базе данных отсутсует информация о погоде.");
         }
     }
 
